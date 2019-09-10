@@ -2,12 +2,5 @@
 
 export(QuantileRescale)
 import(R6)
-import(SciViews)
-import(boot)
 import(dplyr)
-import(utils)
 importFrom(cvcqv,SampleQuantiles)
-importFrom(stats,qchisq)
-importFrom(stats,qnorm)
-importFrom(stats,quantile)
-importFrom(stats,sd)

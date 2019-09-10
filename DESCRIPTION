@@ -25,9 +25,7 @@ Depends:
     R (>= 3.1.2)
 Imports: R6,
   dplyr,
-  cvcqv,
-  SciViews, 
-  boot
+  cvcqv
 Suggests: 
     testthat (>= 2.1.0),
     knitr,

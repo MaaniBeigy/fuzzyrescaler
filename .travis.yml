@@ -6,11 +6,7 @@ sudo: required
 r_packages:
   - dplyr
   - cvcqv
-  - SciViews
-  - boot
   - R6
-  - stats
-  - utils
   - testthat
   - knitr
   - rmarkdown

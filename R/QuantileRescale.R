@@ -27,9 +27,8 @@
 #' x_trf <- QuantileRescale$new(x)$transform_x()
 #' R6::is.R6(x_trf)
 #' @export
-#' @import dplyr SciViews boot R6 utils
+#' @import dplyr R6
 NULL
-#' @importFrom stats quantile sd qchisq qnorm
 #' @importFrom cvcqv SampleQuantiles
 NULL
 QuantileRescale <- R6::R6Class(
