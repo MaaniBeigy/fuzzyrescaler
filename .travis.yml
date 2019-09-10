@@ -11,6 +11,7 @@ r_packages:
   - knitr
   - rmarkdown
   - covr
+  - MBESS
 latex: true
 env:
   global:
@@ -20,7 +21,7 @@ env:
   - VDIFFR_RUN_TESTS=false
 before_install:
   - sudo apt-get update
-  - sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev texlive texinfo libudunits2-dev libproj-dev libgeos-dev libgdal-dev
+  - sudo apt-get install -y libcurl4-openssl-dev libgsl-dev libssl-dev libxml2-dev texlive texinfo libudunits2-dev libproj-dev libgeos-dev libgdal-dev
   - Rscript -e 'update.packages(ask = FALSE)'
 after_success:
   - Rscript -e 'covr::codecov()'
