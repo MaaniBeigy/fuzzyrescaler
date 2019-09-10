@@ -1,0 +1,37 @@
+Package: fuzzyrescaler
+Title: Fuzzy feature scaling methods
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Maani",
+           family = "Beigy",
+           role = c("aut", "cre"),
+           email = "manibeygi@gmail.com",
+           comment = structure("YOUR-ORCID-ID", .Names = "ORCID"))
+Maintainer: Maani Beigy <manibeygi@gmail.com>
+Description: Feature scaling is a method used to normalize the range of 
+    variables or features of data. In data processing, it is also known as data 
+    normalization and is usually performed during the data preprocessing step. 
+    With the fuzzy feature scaling/transformation, some useful knowledge may 
+    be extracted from features, and the new rescaled vectors may tolerate the 
+    possible uncertain information (such as outlier values, and rescaling of 
+    categorical variables). Also, the classification methods can achieve
+    better accuracies using Fuzzy feature scaling methods. References are  
+    Juszczak, Tax, & Duin (2002) <doi:10.1.1.100.2524> , 
+    Jin, Tang, & Zhang (2007) <doi:10.1016/j.ins.2006.03.015> .
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Depends: 
+    R (>= 3.1.2)
+Imports: R6,
+  dplyr,
+  cvcqv,
+  SciViews, 
+  boot
+Suggests: 
+    testthat (>= 2.1.0),
+    knitr,
+    rmarkdown,
+    covr
+VignetteBuilder: knitr
+RoxygenNote: 6.1.1
