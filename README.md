@@ -4,7 +4,14 @@
 # fuzzyrescaler <img src="./man/figures/logo.svg" align="right" width="120" />
 
 <!-- badges: start -->
-
+[![Travis build status](https://travis-ci.org/MaaniBeigy/fuzzyrescaler.svg?branch=master)](https://travis-ci.org/MaaniBeigy/fuzzyrescaler)
+[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/MaaniBeigy/fuzzyrescaler?branch=master&svg=true)](https://ci.appveyor.com/project/MaaniBeigy/fuzzyrescaler)
+[![Codecov test coverage](https://codecov.io/gh/MaaniBeigy/fuzzyrescaler/branch/master/graph/badge.svg)](https://codecov.io/gh/MaaniBeigy/fuzzyrescaler?branch=master)
+[![license](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
+[![packageversion](https://img.shields.io/badge/Package%20version-`r version`-orange.svg?style=flat-square)](commits/master)
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![contributions welcome](<https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat>)](<https://github.com/MaaniBeigy/fuzzyrescaler/issues>)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/MaaniBeigy/fuzzyrescaler?color=brightgreen)
 <!-- badges: end -->
 
 [Feature scaling](https://en.wikipedia.org/wiki/Feature_scaling) is a
