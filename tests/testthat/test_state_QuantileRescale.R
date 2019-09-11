@@ -178,3 +178,15 @@ test_that(
         )
     }
 )
+test_that(
+    desc = "correct handling of super", {
+        x = 1:100
+        x_trf = QuantileRescale$new(
+            x, na.rm = TRUE
+        )
+        expect_equal(
+            unname(x_trf$super_$qx()),
+            3.5
+        )
+    }
+)
