@@ -24,12 +24,14 @@
 #'    0.2, 0.5, 1.1, 1.4, 1.8, 2.3, 2.5, 2.7, 3.5, 4.4,
 #'    4.6, 5.4, 5.4, 5.7, 5.8, 5.9, 6.0, 6.6, 7.1, 7.9
 #' )
-#' x_trf <- QuantileRescale$new(x)$transform_x()
+#' x_trf <- QuantileRescale$new(x)
 #' R6::is.R6(x_trf)
+#' x_trf$transform_x()
 #' @export
 #' @import dplyr R6
 NULL
 #' @importFrom cvcqv SampleQuantiles
+#' @importFrom scales rescale
 NULL
 QuantileRescale <- R6::R6Class(
     classname = "QuantileRescale",
@@ -101,8 +103,8 @@ QuantileRescale <- R6::R6Class(
                 self$x <- x[!is.na(x)]
             }
             # ---------------- stop if input x is not numeric -----------------
-            if (is.atomic(self$x) & !is.numeric(x)) {
-                stop("argument is not a numeric vector")
+            if (is.atomic(self$x) & is.character(x)) {
+                stop("argument is a character vector")
             }
             # else if (
             #     !missing(select) &&
@@ -230,6 +232,10 @@ QuantileRescale <- R6::R6Class(
                     for (i in 1:self$n()) {
                         if (is.na(self$x[i])) {
                             self$xtr[i] = NA
+                        } else if (is.factor(self$x)) {
+                            self$xtr = scales::rescale(
+                                as.numeric(self$x), to = c(0, 1)
+                                )
                         } else if (self$x[i] >= self$quant1()$qx()) {
                             self$xtr[i] = 1
                         } else if (self$x[i] <= self$quant2()$qx()) {
@@ -265,7 +271,9 @@ QuantileRescale <- R6::R6Class(
                             for (i in 1:length(x)) {
                                 if (is.na(x[i])) {
                                     xtr[i] = NA
-                                    } else if (x[i] >= SampleQuantiles$new(x,
+                                } else if (is.factor(x)) {
+                                    xtr = scales::rescale(as.numeric(x), to = c(0, 1))
+                                } else if (x[i] >= SampleQuantiles$new(x,
                                 probs = (1 - self$probs),
                                 na.rm = TRUE,
                                 type = self$type,

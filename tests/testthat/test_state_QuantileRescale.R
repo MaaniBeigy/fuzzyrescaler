@@ -143,8 +143,38 @@ test_that(
     desc = "error message is thrown when transform_df function is incorrect", {
         x = 1:100
         expect_error(
-            QuantileRescale$new(x, select = c(1, 3))$transform_df(),
+            QuantileRescale$new(x)$transform_df(),
             "x is not a data frame"
+        )
+    }
+)
+test_that(
+    desc = "correct handling of factors in df", {
+        x = data.frame(
+            id = c(1:3, NA),
+            gender = c("m", "f", "m", NA),
+            fbs = c(104, 98, 129, NA)
+        )
+        expect_equal(
+            QuantileRescale$new(
+                x, na.rm = TRUE
+            )$transform_df(),
+            data.frame(
+                id = c(0.0, 0.5, 1),
+                gender = c(1, 0, 1),
+                fbs = c(0.2, 0.0, 1.0)
+            )
+        )
+    }
+)
+test_that(
+    desc = "correct handling of factors in vector", {
+        x = factor(c("I", "II", "III", "IV", "I", "II"))
+        expect_equal(
+            QuantileRescale$new(
+                x, na.rm = TRUE
+            )$transform_x(),
+            c(0.0, 0.3, 0.7, 1.0, 0.0, 0.3)
         )
     }
 )
