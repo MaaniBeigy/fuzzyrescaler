@@ -2,9 +2,11 @@
 #' @name QuantileRescale
 #' @description The R6 class \code{QuantileRescale} transforms data into 0-1 or
 #'              0-100 scale with values above (1-p)\% and below p\% percentiles
-#'              taken as the nearest endpoints.
-#' @param x An \code{R} object. Currently there are methods for numeric
-#'              vectors, matrices, and data frames.
+#'              taken as the nearest endpoints. For Factors, it also transforms
+#'              data into 0-1.
+#' @param x An \code{R} object. Currently there are methods for
+#'              vectors, matrices, and data frames. Factors are allowed, but
+#'              characters are not.
 #' @param select expression, indicating columns to select from a data frame or
 #'              matrix
 #' @param na.rm a logical value indicating whether \code{NA} values should be
@@ -106,31 +108,6 @@ QuantileRescale <- R6::R6Class(
             if (is.atomic(self$x) & is.character(x)) {
                 stop("argument is a character vector")
             }
-            # else if (
-            #     !missing(select) &&
-            #     is.data.frame(self$x) && !isTRUE(
-            #     all(
-            #         sapply(
-            #             self$x,
-            #             is.numeric
-            #         )
-            #     )
-            # )
-            # ) {
-            #     warning("argument has non-numeric vectors")
-            # } else if (
-            #     missing(select) &&
-            #     is.data.frame(self$x) && !isTRUE(
-            #         all(
-            #             sapply(
-            #                 self$x,
-            #                 is.numeric
-            #             )
-            #         )
-            #     )
-            # ) {
-            #     warning("argument has non-numeric vectors")
-            # }
             # -------------- check for probs being in range [0,1] -------------
             self$epsp1 <- function(...) {1 + 100*.Machine$double.eps}
             self$epsm1 <- function(...) {-1 * (100*.Machine$double.eps)}

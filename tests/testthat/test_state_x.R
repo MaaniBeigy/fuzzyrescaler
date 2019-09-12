@@ -6,12 +6,20 @@ test_that(
             QuantileRescale$new(x, na.rm = FALSE)$transform_x(),
             "object 'x' not found"
         )
+        expect_error(
+            FuzzyRescale$new(x, na.rm = FALSE)$gaussmf(),
+            "object 'x' not found"
+        )
     }
 )
 test_that(
     desc = "error message is thrown when x is missing", {
         expect_error(
             QuantileRescale$new(na.rm = FALSE)$transform_x(),
+            "object 'x' not found"
+        )
+        expect_error(
+            FuzzyRescale$new(x, na.rm = FALSE)$gaussmf(),
             "object 'x' not found"
         )
     }
@@ -21,6 +29,10 @@ test_that(
         y = c("a", "b")
         expect_error(
             QuantileRescale$new(x = y, na.rm = FALSE)$transform_x(),
+            "argument is a character vector"
+        )
+        expect_error(
+            FuzzyRescale$new(x = y, na.rm = FALSE)$gaussmf(),
             "argument is a character vector"
         )
     }

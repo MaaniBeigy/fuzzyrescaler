@@ -9,8 +9,15 @@ test_that(
         expect_true(
             is.na(QuantileRescale$new(x)$select)
             )
+        expect_true(
+            is.na(FuzzyRescale$new(x)$select)
+        )
         expect_equal(
             QuantileRescale$new(x)$x,
+            subset(x, select = c(1:ncol(x)))
+        )
+        expect_equal(
+            FuzzyRescale$new(x)$x,
             subset(x, select = c(1:ncol(x)))
         )
     }
@@ -27,7 +34,15 @@ test_that(
             c(1, 3)
         )
         expect_equal(
+            FuzzyRescale$new(x, select = c(1,3))$select,
+            c(1, 3)
+        )
+        expect_equal(
             QuantileRescale$new(x, select = c(1,3))$x,
+            subset(x, select = c(1,3))
+        )
+        expect_equal(
+            FuzzyRescale$new(x, select = c(1,3))$x,
             subset(x, select = c(1,3))
         )
     }
@@ -38,8 +53,15 @@ test_that(
         expect_true(
             is.na(QuantileRescale$new(x)$select)
         )
+        expect_true(
+            is.na(FuzzyRescale$new(x)$select)
+        )
         expect_equal(
             QuantileRescale$new(x)$x,
+            1:10
+        )
+        expect_equal(
+            FuzzyRescale$new(x)$x,
             1:10
         )
     }

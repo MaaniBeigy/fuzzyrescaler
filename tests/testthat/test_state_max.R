@@ -44,6 +44,9 @@ test_that(
         expect_equal(
             max(QuantileRescale$new(x)$transform_x()), 1
         )
+        expect_equal(
+            max(FuzzyRescale$new(x)$gaussmf()), 1
+        )
     }
 )
 test_that(
@@ -90,6 +93,10 @@ test_that(
               81.1680227349802)
         expect_equal(
             max(QuantileRescale$new(x, max = 100)$transform_x()), 100
+        )
+        expect_equal(
+            max(FuzzyRescale$new(x, max = 100, digits = 1)$gaussmf()),
+            tolerance = 0.1, 100
         )
     }
 )

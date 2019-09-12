@@ -48,6 +48,13 @@ test_that(
                 ) == 1
             )
         )
+        expect_true(
+            all(
+                nchar(
+                    sub('.*\\.', '', FuzzyRescale$new(x)$gaussmf())
+                ) == 1
+            )
+        )
     }
 )
 test_that(
@@ -98,6 +105,14 @@ test_that(
                     sub('.*\\.', '', QuantileRescale$new(
                         x, digits = 3
                         )$transform_x())
+                ), probs = 0.75)), 3
+        )
+        expect_equal(
+            unname(quantile(
+                nchar(
+                    sub('.*\\.', '', FuzzyRescale$new(
+                        x, digits = 3
+                    )$gaussmf())
                 ), probs = 0.75)), 3
         )
     }
