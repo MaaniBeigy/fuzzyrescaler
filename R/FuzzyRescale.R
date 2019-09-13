@@ -16,6 +16,13 @@
 #' @param digits integer indicating the number of decimal places to be used.
 #' @param max a scalar indicating the maximum endpoint of rescaled variable. The
 #'            might be 1, 100, etc.
+#' @param center it determines the central value of a fuzzy set with
+#'            \code{gaussmf()} method, and will have a membership degree of 1.
+#'            It should be any of the values "mean", "median" or any numeric
+#'            input.
+#' @param sigma it determines the width of a fuzzy set with
+#'            \code{gaussmf()} method. It should be any of the values
+#'            "sd", "IQR" or any numeric input.
 #' @examples
 #' x <- c(
 #'    0.2, 0.5, 1.1, 1.4, 1.8, 2.3, 2.5, 2.7, 3.5, 4.4,
@@ -41,6 +48,8 @@ FuzzyRescale <- R6::R6Class(
     max = 1,
     xtr = 0,
     n = NA,
+    center = "mean",
+    sigma = "sd",
     # ------------- determining constructor defaults for arguments ------------
     initialize = function(
       x = NA,
@@ -48,6 +57,8 @@ FuzzyRescale <- R6::R6Class(
       na.rm = FALSE,
       digits = 1,
       max = 1,
+      center = "mean",
+      sigma = "sd",
       ...
     ) {
       # ---------------------------- check state x ----------------------------
@@ -100,6 +111,42 @@ FuzzyRescale <- R6::R6Class(
       if (!missing(digits)) {
         self$digits <- digits
       }
+      # ---------------------- set center with user input ---------------------
+      if (
+        !missing(center) & !is.numeric(center) & center != "mean" &
+        center != "median"
+      ) {
+        stop(
+          "Incorrect method for center"
+        )
+      } else if (
+        (!missing(center) & !is.numeric(center)) & (center == "mean" |
+        center == "median")
+        ) {
+        self$center <- tolower(center)
+      }  else if (
+        !missing(center) & is.numeric(center)
+      ) {
+        self$center <- center
+      }
+      # ---------------------- set sigma with user input ---------------------
+      if (
+        !missing(sigma) & !is.numeric(sigma) & sigma != "sd" &
+        sigma != "IQR"
+      ) {
+        stop(
+          "Incorrect method for sigma"
+        )
+      } else if (
+        (!missing(sigma) & !is.numeric(sigma)) & (sigma == "sd" |
+        sigma == "IQR")
+        ) {
+        self$sigma <- sigma
+      } else if (
+        !missing(sigma) & is.numeric(sigma)
+      ) {
+        self$sigma <- sigma
+      }
       # ------ initialize the internal functions for the public methods -------
       self$n = function(...) {
         # returns the length of input x
@@ -120,11 +167,74 @@ FuzzyRescale <- R6::R6Class(
             self$xtr = scales::rescale(
               as.numeric(self$x), to = c(0, 1)
             )
-          } else if (is.numeric(self$x)) {
+          } else if (
+            is.numeric(self$x) & self$center == "mean" & self$sigma == "sd"
+            ) {
             self$xtr[i] = exp(
               -1*(((self$x[i] - mean(self$x, na.rm = TRUE))^2)/(
                 2*(sd(self$x, na.rm = TRUE)^2)))
               )
+          } else if (
+            is.numeric(self$x) & self$center == "median" & self$sigma == "IQR"
+            ) {
+            self$xtr[i] = exp(
+              -1*(((self$x[i] - median(self$x, na.rm = TRUE))^2)/(
+                2*(IQR(self$x, na.rm = TRUE)^2)))
+            )
+          } else if (
+            is.numeric(self$x) & self$center == "mean" & self$sigma == "IQR"
+          ) {
+            self$xtr[i] = exp(
+              -1*(((self$x[i] - mean(self$x, na.rm = TRUE))^2)/(
+                2*(IQR(self$x, na.rm = TRUE)^2)))
+            )
+          } else if (
+            is.numeric(self$x) & self$center == "median" & self$sigma == "sd"
+          ) {
+            self$xtr[i] = exp(
+              -1*(((self$x[i] - median(self$x, na.rm = TRUE))^2)/(
+                2*(sd(self$x, na.rm = TRUE)^2)))
+            )
+          } else if (
+            is.numeric(self$x) & is.numeric(self$center) &
+            is.numeric(self$sigma)
+          ) {
+            self$xtr[i] = exp(
+              -1*(((self$x[i] - self$center)^2)/(
+                2*((self$sigma)^2)))
+            )
+          } else if (
+            is.numeric(self$x) & is.numeric(self$center) &
+            self$sigma == "sd"
+          ) {
+            self$xtr[i] = exp(
+              -1*(((self$x[i] - self$center)^2)/(
+                2*(sd(self$x, na.rm = TRUE)^2)))
+            )
+          } else if (
+            is.numeric(self$x) & is.numeric(self$center) &
+            self$sigma == "IQR"
+          ) {
+            self$xtr[i] = exp(
+              -1*(((self$x[i] - self$center)^2)/(
+                2*(IQR(self$x, na.rm = TRUE)^2)))
+            )
+          } else if (
+            is.numeric(self$x) & self$center == "mean" &
+            is.numeric(self$sigma)
+          ) {
+            self$xtr[i] = exp(
+              -1*(((self$x[i] - mean(self$x, na.rm = TRUE))^2)/(
+                2*((self$sigma)^2)))
+            )
+          } else if (
+            is.numeric(self$x) & self$center == "median" &
+            is.numeric(self$sigma)
+          ) {
+            self$xtr[i] = exp(
+              -1*(((self$x[i] - median(self$x, na.rm = TRUE))^2)/(
+                2*((self$sigma)^2)))
+            )
           }
         }
         return(
@@ -142,12 +252,95 @@ FuzzyRescale <- R6::R6Class(
                 xtr[i] = NA
               } else if (is.factor(x)) {
                 xtr = scales::rescale(as.numeric(x), to = c(0, 1))
-              } else if (is.numeric(x) & !is.na(x[i])) {
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & self$center == "mean" &
+                self$sigma == "sd"
+                ) {
                 xtr[i] = exp(
                   -1*(
                     ((x[i] - mean(x, na.rm = TRUE))^2)/(
                       2*(sd(x, na.rm = TRUE)^2))
                     )
+                )
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & self$center == "median" &
+                self$sigma == "IQR"
+              ) {
+                xtr[i] = exp(
+                  -1*(
+                    ((x[i] - median(x, na.rm = TRUE))^2)/(
+                      2*(IQR(x, na.rm = TRUE)^2))
+                  )
+                )
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & self$center == "mean" &
+                self$sigma == "IQR"
+              ) {
+                xtr[i] = exp(
+                  -1*(
+                    ((x[i] - mean(x, na.rm = TRUE))^2)/(
+                      2*(IQR(x, na.rm = TRUE)^2))
+                  )
+                )
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & self$center == "median" &
+                self$sigma == "sd"
+              ) {
+                xtr[i] = exp(
+                  -1*(
+                    ((x[i] - median(x, na.rm = TRUE))^2)/(
+                      2*(sd(x, na.rm = TRUE)^2))
+                  )
+                )
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & is.numeric(self$center) &
+                is.numeric(self$sigma)
+              ) {
+                xtr[i] = exp(
+                  -1*(
+                    ((x[i] - self$center)^2)/(
+                      2*((self$sigma)^2))
+                  )
+                )
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & is.numeric(self$center) &
+                self$sigma == "sd"
+              ) {
+                xtr[i] = exp(
+                  -1*(
+                    ((x[i] - self$center)^2)/(
+                      2*(sd(x, na.rm = TRUE)^2))
+                  )
+                )
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & is.numeric(self$center) &
+                self$sigma == "IQR"
+              ) {
+                xtr[i] = exp(
+                  -1*(
+                    ((x[i] - self$center)^2)/(
+                      2*(IQR(x, na.rm = TRUE)^2))
+                  )
+                )
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & self$center == "mean" &
+                is.numeric(self$sigma)
+              ) {
+                xtr[i] = exp(
+                  -1*(
+                    ((x[i] - mean(x, na.rm = TRUE))^2)/(
+                      2*((self$sigma)^2))
+                  )
+                )
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & self$center == "median" &
+                is.numeric(self$sigma)
+              ) {
+                xtr[i] = exp(
+                  -1*(
+                    ((x[i] - median(x, na.rm = TRUE))^2)/(
+                      2*((self$sigma)^2))
+                  )
                 )
               }
             }

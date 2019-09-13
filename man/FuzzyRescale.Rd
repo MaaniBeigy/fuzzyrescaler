@@ -22,6 +22,15 @@ transformed values.}
 
 \item{max}{a scalar indicating the maximum endpoint of rescaled variable. The
 might be 1, 100, etc.}
+
+\item{center}{it determines the central value of a fuzzy set with
+\code{gaussmf()} method, and will have a membership degree of 1.
+It should be any of the values "mean", "median" or any numeric
+input.}
+
+\item{sigma}{it determines the width of a fuzzy set with
+\code{gaussmf()} method. It should be any of the values
+"sd", "IQR" or any numeric input.}
 }
 \description{
 The R6 class \code{FuzzyRescale} transforms data into 0-1 or
