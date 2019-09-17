@@ -16,13 +16,13 @@
 #' @param digits integer indicating the number of decimal places to be used.
 #' @param max a scalar indicating the maximum endpoint of rescaled variable. The
 #'            might be 1, 100, etc.
-#' @param center it determines the central value of a fuzzy set with
-#'            \code{gaussmf()} method, and will have a membership degree of 1.
-#'            It should be any of the values "mean", "median" or any numeric
-#'            input.
-#' @param sigma it determines the width of a fuzzy set with
-#'            \code{gaussmf()} method. It should be any of the values
-#'            "sd", "IQR" or any numeric input.
+#' @param center it determines the central value of a fuzzy set. It should be
+#'            any of the values "mean", "median" or any numeric input. It will
+#'            have a membership degree of 1, in \code{gaussmf()} method; 0.5 in
+#'            \code{sigmf()};
+#'
+#' @param sigma it determines the width of a fuzzy set. It should be any of the
+#'            values "sd", "IQR" or any numeric input.
 #' @examples
 #' x <- c(
 #'    0.2, 0.5, 1.1, 1.4, 1.8, 2.3, 2.5, 2.7, 3.5, 4.4,
@@ -157,7 +157,8 @@ FuzzyRescale <- R6::R6Class(
         }
       }
     },
-    # ---------------- public methods for membership functions ----------------
+    # --------------- public methods for fuzzy membership values --------------
+    # ---------- gaussmf() method using a Gaussian membership function --------
     gaussmf = function(...) {
       if (is.atomic(self$x)) {
         for (i in 1:self$n()) {
@@ -350,7 +351,197 @@ FuzzyRescale <- R6::R6Class(
           }
         ))
       }
+    },
+    # ---------- sigmf() method using a Sigmoidal membership function ---------
+    sigmf = function(...) {
+      if (is.atomic(self$x)) {
+        for (i in 1:self$n()) {
+          if (is.na(self$x[i])) {
+            self$xtr[i] = NA
+          } else if (is.factor(self$x)) {
+            self$xtr = scales::rescale(
+              as.numeric(self$x), to = c(0, 1)
+            )
+          } else if (
+            is.numeric(self$x) & self$center == "mean" & self$sigma == "sd"
+          ) {
+            self$xtr[i] = 1/(1 + (exp(
+              ((-1*(sd(self$x, na.rm = TRUE))
+                )*(self$x[i] - mean(self$x, na.rm = TRUE))))))
+          } else if (
+            is.numeric(self$x) & self$center == "median" & self$sigma == "IQR"
+          ) {
+            self$xtr[i] = 1/(1 + (exp(
+              ((-1*(IQR(self$x, na.rm = TRUE))
+              )*(self$x[i] - median(self$x, na.rm = TRUE))))))
+          } else if (
+            is.numeric(self$x) & self$center == "mean" & self$sigma == "IQR"
+          ) {
+            self$xtr[i] = 1/(1 + (exp(
+              ((-1*(IQR(self$x, na.rm = TRUE))
+              )*(self$x[i] - mean(self$x, na.rm = TRUE))))))
+          } else if (
+            is.numeric(self$x) & self$center == "median" & self$sigma == "sd"
+          ) {
+            self$xtr[i] = 1/(1 + (exp(
+              ((-1*(sd(self$x, na.rm = TRUE))
+              )*(self$x[i] - median(self$x, na.rm = TRUE))))))
+          } else if (
+            is.numeric(self$x) & is.numeric(self$center) &
+            is.numeric(self$sigma)
+          ) {
+            self$xtr[i] = 1/(1 + (exp(
+              ((-1*(self$sigma)
+              )*(self$x[i] - self$center)))))
+          } else if (
+            is.numeric(self$x) & is.numeric(self$center) &
+            self$sigma == "sd"
+          ) {
+            self$xtr[i] = 1/(1 + (exp(
+              ((-1*(sd(self$x, na.rm = TRUE))
+              )*(self$x[i] - self$center)))))
+          } else if (
+            is.numeric(self$x) & is.numeric(self$center) &
+            self$sigma == "IQR"
+          ) {
+            self$xtr[i] = 1/(1 + (exp(
+              ((-1*(IQR(self$x, na.rm = TRUE))
+              )*(self$x[i] - self$center)))))
+          } else if (
+            is.numeric(self$x) & self$center == "mean" &
+            is.numeric(self$sigma)
+          ) {
+            self$xtr[i] = 1/(1 + (exp(
+              ((-1*(self$sigma)
+              )*(self$x[i] - mean(self$x, na.rm = TRUE))))))
+          } else if (
+            is.numeric(self$x) & self$center == "median" &
+            is.numeric(self$sigma)
+          ) {
+            self$xtr[i] = 1/(1 + (exp(
+              ((-1*(self$sigma)
+              )*(self$x[i] - median(self$x, na.rm = TRUE))))))
+          }
+        }
+        return(
+          round(
+            (self$xtr) * self$max, digits = self$digits
+          )
+        )
+      } else if (is.data.frame(self$x)) {
+        rbind.data.frame(lapply(
+          self$x,
+          function(x) {
+            xtr = 0
+            for (i in 1:length(x)) {
+              if (is.numeric(x) & is.na(x[i])) {
+                xtr[i] = NA
+              } else if (is.factor(x)) {
+                xtr = scales::rescale(as.numeric(x), to = c(0, 1))
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & self$center == "mean" &
+                self$sigma == "sd"
+              ) {
+                xtr[i] = 1/(1 + (exp(
+                  ((-1*(sd(x, na.rm = TRUE))
+                  )*(x[i] - mean(x, na.rm = TRUE))))))
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & self$center == "median" &
+                self$sigma == "IQR"
+              ) {
+                xtr[i] = 1/(1 + (exp(
+                  ((-1*(IQR(x, na.rm = TRUE))
+                  )*(x[i] - median(x, na.rm = TRUE))))))
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & self$center == "mean" &
+                self$sigma == "IQR"
+              ) {
+                xtr[i] = 1/(1 + (exp(
+                  ((-1*(IQR(x, na.rm = TRUE))
+                  )*(x[i] - mean(x, na.rm = TRUE))))))
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & self$center == "median" &
+                self$sigma == "sd"
+              ) {
+                xtr[i] = 1/(1 + (exp(
+                  ((-1*(sd(x, na.rm = TRUE))
+                  )*(x[i] - median(x, na.rm = TRUE))))))
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & is.numeric(self$center) &
+                is.numeric(self$sigma)
+              ) {
+                xtr[i] = 1/(1 + (exp(
+                  ((-1*(self$sigma)
+                  )*(x[i] - self$center)))))
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & is.numeric(self$center) &
+                self$sigma == "sd"
+              ) {
+                xtr[i] = 1/(1 + (exp(
+                  ((-1*(sd(x, na.rm = TRUE))
+                  )*(x[i] - self$center)))))
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & is.numeric(self$center) &
+                self$sigma == "IQR"
+              ) {
+                xtr[i] = 1/(1 + (exp(
+                  ((-1*(IQR(x, na.rm = TRUE))
+                  )*(x[i] - self$center)))))
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & self$center == "mean" &
+                is.numeric(self$sigma)
+              ) {
+                xtr[i] = 1/(1 + (exp(
+                  ((-1*(self$sigma)
+                  )*(x[i] - mean(x, na.rm = TRUE))))))
+              } else if (
+                is.numeric(x) & !is.na(x[i]) & self$center == "median" &
+                is.numeric(self$sigma)
+              ) {
+                xtr[i] = 1/(1 + (exp(
+                  ((-1*(self$sigma)
+                  )*(x[i] - median(x, na.rm = TRUE))))))
+              }
+            }
+            return(
+              round((xtr) * self$max, digits = self$digits)
+            )
+          }
+        ))
+      }
     }
+    # ----------- smf() method using a S-shaped membership function -----------
+    # smf = function(...) {
+    #   print("hello smf")
+    # }
+    # ------------ zmf() method using a Z-shaped membership function ----------
+    # zmf = function(...) {
+    #   print("hello zmf")
+    # }
+    # --------- trimf() method using a Triangular membership function ---------
+    # trimf = function(...) {
+    #   print("hello trimf")
+    # }
+    # -------- trapmf() method using a Trapezoidal membership function --------
+    # trapmf = function(...) {
+    #   print("hello trapmf")
+    # }
+    # -- gbellmf() method using a Generalized bell-shaped membership function -
+    # gbellmf = function(...) {
+    #   print("hello gbellmf")
+    # }
+    # ---------- pimf() method using a Pi-shaped membership function ----------
+    # pimf = function(...) {
+    #   print("hello pimf")
+    # }
+    # --------- lingmf() method using a linguistic membership function --------
+    # lingmf = function(...) {
+    #   print("hello lingmf")
+    # }
+    # -- gauss2mf() method using a Gaussian combination membership function ---
+    # gauss2mf = function(...) {
+    #   print("hello gauss2mf")
+    # }
   ),
     # ---- define super_ function to enable multiple levels of inheritance ----
     active = list(
