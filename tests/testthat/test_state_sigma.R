@@ -62,7 +62,8 @@ test_that(
   desc = "stops if incorrect method for sigma is used", {
     x = 1:10
     expect_error(
-      FuzzyRescale$new(x, sigma = "MAD")$gaussmf()
+      FuzzyRescale$new(x, sigma = "MAD")$gaussmf(),
+      "Incorrect method for sigma"
     )
   }
 )

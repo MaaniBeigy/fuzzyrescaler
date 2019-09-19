@@ -62,7 +62,8 @@ test_that(
   desc = "stops if incorrect method for center is used", {
     x = 1:10
     expect_error(
-      FuzzyRescale$new(x, center = "mode")$gaussmf()
+      FuzzyRescale$new(x, center = "mode")$gaussmf(),
+      "Incorrect method for center"
     )
   }
 )
