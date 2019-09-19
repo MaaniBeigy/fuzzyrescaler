@@ -24,12 +24,37 @@ transformed values.}
 might be 1, 100, etc.}
 
 \item{center}{it determines the central value of a fuzzy set. It should be
-any of the values "mean", "median" or any numeric input. It will
-have a membership degree of 1, in \code{gaussmf()} method; 0.5 in
+any of the values \link[base:mean]{"mean"},
+\link[stats:median]{"median"} or any numeric input. It will have
+a membership degree of 1, in \code{gaussmf()} method; 0.5 in
 \code{sigmf()};}
 
-\item{sigma}{it determines the width of a fuzzy set. It should be any of the
-values "sd", "IQR" or any numeric input.}
+\item{sigma}{it determines the width of a fuzzy set obtained from either
+\code{gaussmf()} or \code{sigmf()}. It should be any of the
+values \link[stats:sd]{"sd"}, \link[stats:IQR]{"IQR"} or any
+numeric input. In \code{sigmf()}, to open the membership function
+to the left or right, specify a negative or positive value for
+\code{sigma}, respectively.}
+
+\item{param_one}{This is the first parameter for \code{smf()}. If
+\code{param_one} is lower than \code{param_two}, it will be the
+\strong{foot} of the membership function; otherwise it will define
+the \strong{shoulder}. It should be either \link[base:min]{"min"}
+or \link[base:max]{"max"}, any
+\link[cvcqv:SampleQuantiles]{quantiles} defined by the prefix
+\code{"p"} followed by a value in \code{[0,100]} (\emph{e.g.,}
+"p2.5" indicates 2.5\% percentile of the input variable),
+or any numeric input.}
+
+\item{param_two}{This is the second parameter for \code{smf()}. If
+\code{param_two} is higher than \code{param_one}, it will define
+the \strong{shoulder} of the membership function; otherwise it
+will be the \strong{foot} It should be either
+\link[base:max]{"max"} or \link[base:min]{"min"}, any
+\link[cvcqv:SampleQuantiles]{quantiles} defined by the prefix
+\code{"p"} followed by a value in \code{[0,100]} (\emph{e.g.,}
+"p97.5" indicates 97.5\% percentile of the input variable),
+or any numeric input.}
 }
 \description{
 The R6 class \code{FuzzyRescale} transforms data into 0-1 or

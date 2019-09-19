@@ -17,12 +17,34 @@
 #' @param max a scalar indicating the maximum endpoint of rescaled variable. The
 #'            might be 1, 100, etc.
 #' @param center it determines the central value of a fuzzy set. It should be
-#'            any of the values "mean", "median" or any numeric input. It will
-#'            have a membership degree of 1, in \code{gaussmf()} method; 0.5 in
+#'            any of the values \link[base:mean]{"mean"},
+#'            \link[stats:median]{"median"} or any numeric input. It will have
+#'            a membership degree of 1, in \code{gaussmf()} method; 0.5 in
 #'            \code{sigmf()};
-#'
-#' @param sigma it determines the width of a fuzzy set. It should be any of the
-#'            values "sd", "IQR" or any numeric input.
+#' @param sigma it determines the width of a fuzzy set obtained from either
+#'            \code{gaussmf()} or \code{sigmf()}. It should be any of the
+#'            values \link[stats:sd]{"sd"}, \link[stats:IQR]{"IQR"} or any
+#'            numeric input. In \code{sigmf()}, to open the membership function
+#'            to the left or right, specify a negative or positive value for
+#'            \code{sigma}, respectively.
+#' @param param_one This is the first parameter for \code{smf()}. If
+#'            \code{param_one} is lower than \code{param_two}, it will be the
+#'            \strong{foot} of the membership function; otherwise it will define
+#'            the \strong{shoulder}. It should be either \link[base:min]{"min"}
+#'            or \link[base:max]{"max"}, any
+#'            \link[cvcqv:SampleQuantiles]{quantiles} defined by the prefix
+#'            \code{"p"} followed by a value in \code{[0,100]} (\emph{e.g.,}
+#'            "p2.5" indicates 2.5\% percentile of the input variable),
+#'            or any numeric input.
+#' @param param_two This is the second parameter for \code{smf()}. If
+#'            \code{param_two} is higher than \code{param_one}, it will define
+#'            the \strong{shoulder} of the membership function; otherwise it
+#'            will be the \strong{foot} It should be either
+#'            \link[base:max]{"max"} or \link[base:min]{"min"}, any
+#'            \link[cvcqv:SampleQuantiles]{quantiles} defined by the prefix
+#'            \code{"p"} followed by a value in \code{[0,100]} (\emph{e.g.,}
+#'            "p97.5" indicates 97.5\% percentile of the input variable),
+#'            or any numeric input.
 #' @examples
 #' x <- c(
 #'    0.2, 0.5, 1.1, 1.4, 1.8, 2.3, 2.5, 2.7, 3.5, 4.4,
@@ -35,6 +57,8 @@
 #' @import dplyr R6
 NULL
 #' @importFrom scales rescale
+#' @importFrom stats median sd IQR
+#' @importFrom cvcqv SampleQuantiles
 NULL
 FuzzyRescale <- R6::R6Class(
   classname = "QuantileRescale",
@@ -50,6 +74,8 @@ FuzzyRescale <- R6::R6Class(
     n = NA,
     center = "mean",
     sigma = "sd",
+    param_one = "p2.5",
+    param_two = "p97.5",
     # ------------- determining constructor defaults for arguments ------------
     initialize = function(
       x = NA,
@@ -59,6 +85,8 @@ FuzzyRescale <- R6::R6Class(
       max = 1,
       center = "mean",
       sigma = "sd",
+      param_one = "p2.5",
+      param_two = "p97.5",
       ...
     ) {
       # ---------------------------- check state x ----------------------------
@@ -146,6 +174,92 @@ FuzzyRescale <- R6::R6Class(
         !missing(sigma) & is.numeric(sigma)
       ) {
         self$sigma <- sigma
+      }
+      # ------------------ set param_one with user input ----------------------
+      if (
+        !missing(param_one) & !is.numeric(param_one) & param_one != "min" &
+        param_one != "max" & gsub("[.[:digit:]]", "", param_one) != "p" &
+        is.na(suppressWarnings(
+          as.numeric(gsub("^[^[:digit:]]", "", param_one))))
+      ) {
+        stop(
+          "Incorrect method for param_one"
+        )
+      } else if (param_one == "min" | param_one == "max") {
+        self$param_one <- param_one
+      } else if (
+        (!missing(param_one) & !is.numeric(param_one) & (
+          gsub("[.[:digit:]]", "", param_one) == "p" &
+          !is.na(suppressWarnings(
+            as.numeric(gsub("^[^[:digit:]]", "", param_one))))
+        ))
+      ) {
+        if (
+          as.numeric(
+            gsub("^[^[:digit:]]", "", param_one))/100 > (
+              1 + (100*.Machine$double.eps))
+        ) {
+          stop("probs outside [0,100]")
+        } else if (
+          (as.numeric(gsub("^[^[:digit:]]", "", param_one)
+                      )/100 <= (1 + 100*.Machine$double.eps)) & (
+           as.numeric(gsub("^[^[:digit:]]", "", param_one))/100 >= 1
+            )
+        ) {
+          self$param_one <- "p100"
+        } else if (
+            (as.numeric(gsub("^[^[:digit:]]", "", param_one))
+            )/100 >= 0 & (
+              as.numeric(gsub("^[^[:digit:]]", "", param_one))/100 <= 1
+            )
+          ) {
+          self$param_one <- param_one
+        }
+      } else if (!missing(param_one) & is.numeric(param_one)) {
+        self$param_one <- param_one
+      }
+      # ------------------ set param_two with user input ----------------------
+      if (
+        !missing(param_two) & !is.numeric(param_two) & param_two != "min" &
+        param_two != "max" & gsub("[.[:digit:]]", "", param_two) != "p" &
+        is.na(suppressWarnings(
+          as.numeric(gsub("^[^[:digit:]]", "", param_two))))
+      ) {
+        stop(
+          "Incorrect method for param_two"
+        )
+      } else if (param_two == "min" | param_two == "max") {
+        self$param_two <- param_two
+      } else if (
+        (!missing(param_two) & !is.numeric(param_two) & (
+          gsub("[.[:digit:]]", "", param_two) == "p" &
+          !is.na(suppressWarnings(
+            as.numeric(gsub("^[^[:digit:]]", "", param_two))))
+        ))
+      ) {
+        if (
+          as.numeric(
+            gsub("^[^[:digit:]]", "", param_two))/100 > (
+              1 + (100*.Machine$double.eps))
+        ) {
+          stop("probs outside [0,100]")
+        } else if (
+          (as.numeric(gsub("^[^[:digit:]]", "", param_two)
+          )/100 <= (1 + 100*.Machine$double.eps)) & (
+            as.numeric(gsub("^[^[:digit:]]", "", param_two))/100 >= 1
+          )
+        ) {
+          self$param_two <- "p100"
+        } else if (
+          (as.numeric(gsub("^[^[:digit:]]", "", param_two))
+          )/100 >= 0 & (
+            as.numeric(gsub("^[^[:digit:]]", "", param_two))/100 <= 1
+          )
+        ) {
+          self$param_two <- param_two
+        }
+      } else if (!missing(param_two) & is.numeric(param_two)) {
+        self$param_two <- param_two
       }
       # ------ initialize the internal functions for the public methods -------
       self$n = function(...) {
@@ -510,9 +624,10 @@ FuzzyRescale <- R6::R6Class(
         ))
       }
     }
+    # ,
     # ----------- smf() method using a S-shaped membership function -----------
     # smf = function(...) {
-    #   print("hello smf")
+    #
     # }
     # ------------ zmf() method using a Z-shaped membership function ----------
     # zmf = function(...) {
